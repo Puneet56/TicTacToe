@@ -42,18 +42,22 @@ export default function App() {
 		for (let i = 0; i < 3; i++) {
 			if (map[i][0] === map[i][1] && map[i][1] === map[i][2] && map[i][0] !== "") {
 				gameWonMessage(map[i][0]);
+				return true;
 			}
 		}
 		for (let i = 0; i < 3; i++) {
 			if (map[0][i] === map[1][i] && map[1][i] === map[2][i] && map[0][i] !== "") {
 				gameWonMessage(map[0][i]);
+				return true;
 			}
 		}
 		if (map[0][0] === map[1][1] && map[1][1] === map[2][2] && map[0][0] !== "") {
 			gameWonMessage(map[0][0]);
+			return true;
 		}
 		if (map[0][2] === map[1][1] && map[1][1] === map[2][0] && map[0][2] !== "") {
 			gameWonMessage(map[0][2]);
+			return true;
 		}
 		return false;
 	};
@@ -84,6 +88,44 @@ export default function App() {
 				},
 			]);
 		}
+	};
+
+	const minMax = (map, player) => {
+		let score = {};
+		for (let i = 0; i < 3; i++) {
+			for (let j = 0; j < 3; j++) {
+				if (map[i][j] === "") {
+					map[i][j] = player;
+					if (checkWinner(map)) {
+						score[`${i}${j}`] = 1;
+					} else {
+						score[`${i}${j}`] = -1;
+					}
+					map[i][j] = "";
+				}
+			}
+		}
+		return score;
+	};
+
+	const minimax = (map, player) => {
+		let bestScore = -Infinity;
+		let bestMove = null;
+		let score = minMax(map, player);
+		for (let i = 0; i < 3; i++) {
+			for (let j = 0; j < 3; j++) {
+				if (score[`${i}${j}`] > bestScore) {
+					bestScore = score[`${i}${j}`];
+					bestMove = { i, j };
+				}
+			}
+		}
+		return bestMove;
+	};
+
+	const aiMove = () => {
+		let move = minimax(map, turn);
+		handleMove(move.i, move.j);
 	};
 
 	return (
