@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, ImageBackground, Pressable, TouchableOpacity, Alert } from "react-native";
 import bg from "./assets/bg.jpeg";
@@ -14,6 +14,11 @@ export default function App() {
 
 	const [turn, setTurn] = useState("X");
 
+	useEffect(() => {
+		checkWinner();
+		noWinner();
+	}, [map]);
+
 	const reset = () => {
 		setMap([
 			["", "", ""], //0th row
@@ -24,24 +29,69 @@ export default function App() {
 
 	const handleMove = (row, col) => {
 		if (map[row][col] !== "") {
-			Alert.alert("Invalid Move");
+			Alert.alert("Invalid Move", "This position is already taken");
 			return;
 		}
 		const newMap = [...map];
 		newMap[row][col] = turn;
 		setMap(newMap);
 		setTurn(turn === "X" ? "O" : "X");
-		// reset();
-		if (checkWinner(newMap)) {
-			console.warn("PASSED");
-			Alert.alert(`${turn} won!`);
+	};
+
+	const checkWinner = () => {
+		for (let i = 0; i < 3; i++) {
+			if (map[i][0] === map[i][1] && map[i][1] === map[i][2] && map[i][0] !== "") {
+				gameWonMessage(map[i][0]);
+			}
+		}
+		for (let i = 0; i < 3; i++) {
+			if (map[0][i] === map[1][i] && map[1][i] === map[2][i] && map[0][i] !== "") {
+				gameWonMessage(map[0][i]);
+			}
+		}
+		if (map[0][0] === map[1][1] && map[1][1] === map[2][2] && map[0][0] !== "") {
+			gameWonMessage(map[0][0]);
+		}
+		if (map[0][2] === map[1][1] && map[1][1] === map[2][0] && map[0][2] !== "") {
+			gameWonMessage(map[0][2]);
+		}
+		return false;
+	};
+
+	const gameWonMessage = (player) => {
+		Alert.alert("Hurray", `${player} won!`, [
+			{
+				text: "Play Again",
+				onPress: () => reset(),
+			},
+		]);
+	};
+
+	const noWinner = () => {
+		let count = 0;
+		for (let i = 0; i < 3; i++) {
+			for (let j = 0; j < 3; j++) {
+				if (map[i][j] !== "") {
+					count++;
+				}
+			}
+		}
+		if (count === 9) {
+			Alert.alert("No Winner", "Game is a draw", [
+				{
+					text: "Play Again",
+					onPress: () => reset(),
+				},
+			]);
 		}
 	};
 
-	const checkWinner = (map) => {};
-
 	return (
 		<View style={styles.container}>
+			<View style={styles.headingContainer}>
+				<Text style={styles.gameTitle}>Tic Tac Toe</Text>
+				<Text style={styles.currentTurn}>Current Turn: {turn}</Text>
+			</View>
 			<ImageBackground source={bg} style={styles.bg} resizeMode="contain">
 				<View style={styles.map}>
 					{map.map((row, rowIndex) => {
@@ -85,6 +135,27 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		justifyContent: "center",
 		paddingTop: 15,
+	},
+	headingContainer: {
+		position: "absolute",
+		top: 80,
+		left: 0,
+		right: 0,
+		zIndex: 1,
+		flexDirection: "column",
+		justifyContent: "space-between",
+		alignItems: "center",
+		padding: 10,
+	},
+	gameTitle: {
+		fontSize: 30,
+		fontWeight: "bold",
+		color: "#fff",
+	},
+	currentTurn: {
+		fontSize: 30,
+		fontWeight: "bold",
+		color: "#fff",
 	},
 	map: {
 		width: "80%",
